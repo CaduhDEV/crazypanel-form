@@ -4,7 +4,7 @@
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
 
-  --color-base: #070712;
+  --color-bg: #070712;
   --color-panel: rgba(18, 16, 40, 0.72);
   --color-line: rgba(255, 255, 255, 0.09);
   --color-line-strong: rgba(255, 255, 255, 0.18);
@@ -19,7 +19,7 @@
 html,
 body {
   min-height: 100%;
-  background: var(--color-base);
+  background: var(--color-bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
 }

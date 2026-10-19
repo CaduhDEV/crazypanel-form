@@ -311,7 +311,7 @@ export function Wizard() {
                     value={maskPhone(phone)}
                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
                     placeholder="(11) 98765-4321"
-                    className="min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none placeholder:text-muted/60"
+                    className="min-w-0 flex-1 bg-transparent px-3 py-3 text-base text-text outline-none placeholder:text-muted/60"
                   />
                 </div>
               </Field>
@@ -351,7 +351,7 @@ export function Wizard() {
 
 // =============================================================================
 const inputClass =
-  "w-full rounded-xl border border-line bg-white/[0.04] px-4 py-3 text-base outline-none transition-colors placeholder:text-muted/60 focus:border-violet";
+  "w-full rounded-xl border border-line bg-white/[0.04] px-4 py-3 text-base text-text outline-none transition-colors placeholder:text-muted/60 focus:border-violet";
 
 function Heading({ title, text }: { title: string; text: string }) {
   return (
