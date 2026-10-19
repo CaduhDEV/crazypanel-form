@@ -291,7 +291,7 @@ export function Wizard() {
             <div className="flex flex-col gap-5">
               <Heading title="Confira seu e-mail" text={`Digite o código de ${emailCodeLength} números que enviamos para ${email}.`} />
               <CodeInput value={code} onChange={setCode} onComplete={confirmEmail} disabled={busy || locked} length={emailCodeLength} />
-              <ErrorText error={error} />
+              {busy ? <Checking steps={EMAIL_STEPS} /> : <ErrorText error={error} />}
               <Resend seconds={resendIn} busy={busy} locked={locked} onClick={resendEmail} />
               <Back label="Trocar e-mail" onClick={() => setStage("email")} />
             </div>
@@ -326,7 +326,7 @@ export function Wizard() {
             <div className="flex flex-col gap-5">
               <Heading title="Confira seu WhatsApp" text={`Digite o código de 6 números que enviamos para +55 ${maskPhone(phone)}.`} />
               <CodeInput value={code} onChange={setCode} onComplete={confirmPhone} disabled={busy || locked} />
-              <ErrorText error={error} />
+              {busy ? <Checking steps={PHONE_STEPS} /> : <ErrorText error={error} />}
               <Resend seconds={resendIn} busy={busy} locked={locked} onClick={resendPhone} />
               <Back label="Trocar número" onClick={() => setStage("phone")} />
             </div>
@@ -398,6 +398,30 @@ function ErrorText({ error }: { error: string | null }) {
     <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
       {error}
     </p>
+  );
+}
+
+const EMAIL_STEPS = ["Conferindo o código…"];
+const PHONE_STEPS = ["Conferindo o código…", "Procurando sua empresa…", "Criando sua solicitação de entrada…", "Quase lá…"];
+
+/** Enquanto o painel confere o código (e, no fim, vincula a empresa e cria a solicitação): mostra que está andando. */
+function Checking({ steps }: { steps: string[] }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (steps.length < 2) return;
+    const t = setInterval(() => setI((n) => Math.min(n + 1, steps.length - 1)), 2200);
+    return () => clearInterval(t);
+  }, [steps.length]);
+  return (
+    <div role="status" aria-live="polite" className="step-enter flex flex-col items-center gap-3 py-1">
+      <div className="flex items-center gap-2.5 text-sm text-text">
+        <span className="size-4 animate-spin rounded-full border-2 border-violet/30 border-t-violet" aria-hidden />
+        <span key={i} className="step-enter">{steps[i]}</span>
+      </div>
+      <div className="h-1 w-40 overflow-hidden rounded-full bg-white/[0.06]" aria-hidden>
+        <div className="progress-indeterminate h-full w-1/3 rounded-full bg-gradient-to-r from-violet to-violet-strong" />
+      </div>
+    </div>
   );
 }
 
