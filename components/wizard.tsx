@@ -85,6 +85,8 @@ export function Wizard() {
   // Tamanho do código do e-mail (o Supabase deste projeto usa 8); o do WhatsApp é sempre 6.
   const [emailCodeLength, setEmailCodeLength] = useState(8);
   const resumed = useRef(false);
+  // Até saber se há uma sessão para retomar, mostra o esqueleto (evita pular de etapa na frente da pessoa).
+  const [ready, setReady] = useState(false);
 
   // Relógio para os contadores (reenvio e bloqueio).
   useEffect(() => {
@@ -97,7 +99,11 @@ export function Wizard() {
     if (resumed.current) return;
     resumed.current = true;
     const s = loadSession();
-    if (!s) return;
+    if (!s) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- só depois de ler o sessionStorage no cliente
+      setReady(true);
+      return;
+    }
     call<{ stage: Stage; name: string; email: string; phone: string | null; lockedUntil: string | null; codeLength?: number }>("status", { ...s })
       .then((r) => {
         setSession(s);
@@ -109,7 +115,8 @@ export function Wizard() {
         setStage(r.stage === "done" ? "name" : r.stage);
         if (r.stage === "done") saveSession(null);
       })
-      .catch(() => saveSession(null));
+      .catch(() => saveSession(null))
+      .finally(() => setReady(true));
   }, []);
 
   const fail = useCallback((e: unknown) => {
@@ -221,6 +228,10 @@ export function Wizard() {
       </div>
 
       <div className="rounded-3xl border border-line bg-panel p-6 shadow-[0_24px_80px_-20px_rgba(76,29,149,0.55)] backdrop-blur-xl sm:p-8">
+        {!ready ? (
+          <WizardSkeleton />
+        ) : (
+          <>
         {stage !== "done" && (
           <ol className="mb-7 flex items-center gap-2" aria-label="Etapas">
             {STEPS.map((s, i) => (
@@ -323,6 +334,8 @@ export function Wizard() {
 
           {stage === "done" && result && <Done name={name} result={result} />}
         </div>
+          </>
+        )}
 
         {locked && stage !== "done" && (
           <p className="mt-5 rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-center text-sm text-danger">
@@ -480,6 +493,29 @@ function Done({ name, result }: { name: string; result: { status: string; compan
           Empresa: <span className="font-semibold">{result.company}</span>
         </p>
       )}
+    </div>
+  );
+}
+
+/** Esqueleto do cartão enquanto confere se há uma sessão para retomar. */
+function WizardSkeleton() {
+  return (
+    <div className="flex flex-col gap-5" aria-busy="true" aria-label="Carregando">
+      <div className="mb-2 flex gap-2">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="flex flex-1 flex-col gap-1.5">
+            <span className="skeleton h-1 rounded-full" />
+            <span className="skeleton h-2.5 w-12 rounded" />
+          </div>
+        ))}
+      </div>
+      <span className="skeleton h-7 w-3/5 rounded-lg" />
+      <span className="flex flex-col gap-2">
+        <span className="skeleton h-3.5 w-full rounded" />
+        <span className="skeleton h-3.5 w-4/5 rounded" />
+      </span>
+      <span className="skeleton mt-1 h-12 w-full rounded-xl" />
+      <span className="skeleton h-12 w-full rounded-xl" />
     </div>
   );
 }
