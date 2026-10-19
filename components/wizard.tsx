@@ -82,6 +82,8 @@ export function Wizard() {
   const [resendAt, setResendAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [result, setResult] = useState<{ status: string; company: string | null } | null>(null);
+  // Tamanho do código do e-mail (o Supabase deste projeto usa 8); o do WhatsApp é sempre 6.
+  const [emailCodeLength, setEmailCodeLength] = useState(8);
   const resumed = useRef(false);
 
   // Relógio para os contadores (reenvio e bloqueio).
@@ -96,13 +98,14 @@ export function Wizard() {
     resumed.current = true;
     const s = loadSession();
     if (!s) return;
-    call<{ stage: Stage; name: string; email: string; phone: string | null; lockedUntil: string | null }>("status", { ...s })
+    call<{ stage: Stage; name: string; email: string; phone: string | null; lockedUntil: string | null; codeLength?: number }>("status", { ...s })
       .then((r) => {
         setSession(s);
         setName(r.name);
         setEmail(r.email);
         if (r.phone) setPhone(r.phone.replace(/^55/, ""));
         if (r.lockedUntil) setLockedUntil(Date.parse(r.lockedUntil));
+        if (r.codeLength) setEmailCodeLength(r.codeLength);
         setStage(r.stage === "done" ? "name" : r.stage);
         if (r.stage === "done") saveSession(null);
       })
@@ -150,12 +153,13 @@ export function Wizard() {
   const submitEmail = (e: React.FormEvent) => {
     e.preventDefault();
     run(async () => {
-      const r = await call<{ id: string; token: string }>("start", { name: name.trim(), email: email.trim() });
+      const r = await call<{ id: string; token: string; resendInSeconds?: number; codeLength?: number }>("start", { name: name.trim(), email: email.trim() });
+      if (r.codeLength) setEmailCodeLength(r.codeLength);
       const s = { id: r.id, token: r.token };
       saveSession(s);
       setSession(s);
       setCode("");
-      setResendAt(Date.now() + RESEND_SECONDS * 1000);
+      setResendAt(Date.now() + (r.resendInSeconds ?? RESEND_SECONDS) * 1000);
       setStage("email_code");
     });
   };
@@ -274,8 +278,8 @@ export function Wizard() {
 
           {stage === "email_code" && (
             <div className="flex flex-col gap-5">
-              <Heading title="Confira seu e-mail" text={`Digite o código de 6 números que enviamos para ${email}.`} />
-              <CodeInput value={code} onChange={setCode} onComplete={confirmEmail} disabled={busy || locked} />
+              <Heading title="Confira seu e-mail" text={`Digite o código de ${emailCodeLength} números que enviamos para ${email}.`} />
+              <CodeInput value={code} onChange={setCode} onComplete={confirmEmail} disabled={busy || locked} length={emailCodeLength} />
               <ErrorText error={error} />
               <Resend seconds={resendIn} busy={busy} locked={locked} onClick={resendEmail} />
               <Back label="Trocar e-mail" onClick={() => setStage("email")} />
@@ -397,33 +401,35 @@ function Resend({ seconds, busy, locked, onClick }: { seconds: number; busy: boo
   );
 }
 
-/** 6 caixas; aceita colar o código inteiro e confere sozinho ao completar. */
+/** Uma caixa por dígito; aceita colar o código inteiro e confere sozinho ao completar. */
 function CodeInput({
   value,
   onChange,
   onComplete,
   disabled,
+  length = 6,
 }: {
   value: string;
   onChange: (v: string) => void;
   onComplete: (v: string) => void;
   disabled: boolean;
+  length?: number;
 }) {
   const refs = useRef<(HTMLInputElement | null)[]>([]);
-  const digits = Array.from({ length: 6 }, (_, i) => value[i] ?? "");
+  const digits = Array.from({ length }, (_, i) => value[i] ?? "");
 
   useEffect(() => {
-    if (!disabled) refs.current[Math.min(value.length, 5)]?.focus();
-  }, [disabled, value.length]);
+    if (!disabled) refs.current[Math.min(value.length, length - 1)]?.focus();
+  }, [disabled, value.length, length]);
 
   const set = (next: string) => {
-    const clean = next.replace(/\D/g, "").slice(0, 6);
+    const clean = next.replace(/\D/g, "").slice(0, length);
     onChange(clean);
-    if (clean.length === 6) onComplete(clean);
+    if (clean.length === length) onComplete(clean);
   };
 
   return (
-    <div className="flex justify-between gap-2" onPaste={(e) => (e.preventDefault(), set(e.clipboardData.getData("text")))}>
+    <div className="flex justify-between gap-1.5 sm:gap-2" onPaste={(e) => (e.preventDefault(), set(e.clipboardData.getData("text")))}>
       {digits.map((d, i) => (
         <input
           key={i}
@@ -435,12 +441,12 @@ function CodeInput({
           inputMode="numeric"
           autoComplete={i === 0 ? "one-time-code" : "off"}
           aria-label={`Dígito ${i + 1}`}
-          maxLength={6}
+          maxLength={length}
           onChange={(e) => {
             const typed = e.target.value.replace(/\D/g, "");
             if (!typed) return;
             // Autopreenchimento do celular joga o código inteiro numa caixa.
-            set(typed.length > 1 ? typed : (value.slice(0, i) + typed).slice(0, 6));
+            set(typed.length > 1 ? typed : (value.slice(0, i) + typed).slice(0, length));
           }}
           onKeyDown={(e) => {
             if (e.key === "Backspace") {
@@ -448,7 +454,7 @@ function CodeInput({
               onChange(value.slice(0, Math.max(0, d ? i : i - 1)));
             }
           }}
-          className="h-14 w-full min-w-0 rounded-xl border border-line bg-white/[0.04] text-center font-mono text-2xl font-medium outline-none transition-colors focus:border-violet disabled:opacity-60"
+          className="h-14 w-full min-w-0 rounded-xl max-[380px]:h-12 border border-line bg-white/[0.04] text-center font-mono text-2xl font-medium outline-none transition-colors focus:border-violet disabled:opacity-60"
         />
       ))}
     </div>
