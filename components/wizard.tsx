@@ -214,16 +214,33 @@ export function Wizard() {
   return (
     <div className="relative z-10 w-full max-w-md">
       <div className="mb-6 flex items-center justify-center">
-        <span className="flex items-center gap-2 rounded-full border border-line bg-white/[0.03] px-4 py-1.5 text-sm font-extrabold tracking-tight backdrop-blur">
-          <svg viewBox="0 0 296 296" className="size-4 text-violet" aria-hidden>
-            <path
-              d="M95.5657 295.294L81.3239 266.381L83.6986 253.77L216.273 203.763L29.6997 163.986V129.706L37.5589 119.97L219.3 63.0427L0.647095 42.1422V9.22756L8.53698 0L289.531 33.3945L295.941 44.3661V73.7989L91.0102 142.341L266.719 178.411L273.376 188.488V215.648L95.5657 295.294Z"
-              fill="currentColor"
-            />
-          </svg>
-          DataCrazy
-          <span className="h-3.5 w-px bg-line-strong" aria-hidden />
-          <span className="font-medium text-muted">Comunidade</span>
+        {/* Você + DataCrazy, ligados por um símbolo de conexão. */}
+        <span className="flex items-center gap-2.5 rounded-full border border-line bg-white/[0.03] px-4 py-1.5 text-sm font-extrabold tracking-tight backdrop-blur">
+          <span className="flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" className="size-4 text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+            Você
+          </span>
+          <span className="flex items-center text-violet" aria-label="conectado a">
+            <span className="h-px w-2.5 bg-gradient-to-r from-transparent to-violet" aria-hidden />
+            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M9 17H7A5 5 0 0 1 7 7h2" />
+              <path d="M15 7h2a5 5 0 1 1 0 10h-2" />
+              <line x1="8" y1="12" x2="16" y2="12" />
+            </svg>
+            <span className="h-px w-2.5 bg-gradient-to-l from-transparent to-violet" aria-hidden />
+          </span>
+          <span className="flex items-center gap-1.5">
+            <svg viewBox="0 0 296 296" className="size-4 text-violet" aria-hidden>
+              <path
+                d="M95.5657 295.294L81.3239 266.381L83.6986 253.77L216.273 203.763L29.6997 163.986V129.706L37.5589 119.97L219.3 63.0427L0.647095 42.1422V9.22756L8.53698 0L289.531 33.3945L295.941 44.3661V73.7989L91.0102 142.341L266.719 178.411L273.376 188.488V215.648L95.5657 295.294Z"
+                fill="currentColor"
+              />
+            </svg>
+            DataCrazy
+          </span>
         </span>
       </div>
 
@@ -344,7 +361,13 @@ export function Wizard() {
         )}
       </div>
 
-      <p className="mt-5 text-center text-xs text-muted">Seus dados são usados só para liberar sua entrada na comunidade.</p>
+      <p className="mx-auto mt-5 flex max-w-sm items-start justify-center gap-2 text-center text-xs leading-relaxed text-muted">
+        <svg viewBox="0 0 24 24" className="mt-px size-3.5 shrink-0 text-violet" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+        <span>Seus dados estão seguros e são tratados conforme a Lei Geral de Proteção de Dados (LGPD, Lei nº 13.709/2018).</span>
+      </p>
     </div>
   );
 }
