@@ -15,6 +15,7 @@ npm-debug.log*
 # env files
 .env*
 !.env.example
+!.env.example
 
 # typescript
 *.tsbuildinfo
@@ -22,3 +23,7 @@ next-env.d.ts
 
 # ferramentas locais
 .claude
+
+.vercel
+.env*
+!.env.example
